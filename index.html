@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cupping Notes</title>
+<meta name="description" content="Score coffees with the SCA cupping form. Works offline; your data stays on this device.">
+<meta name="theme-color" content="#3b2418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cupping">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root {
+  --bg: #f7f1ea;
+  --card: #fffaf4;
+  --ink: #2a1a12;
+  --muted: #7a6455;
+  --line: #e6d8c8;
+  --brand: #6b3f26;
+  --brand-ink: #fffaf4;
+  --accent: #b5652b;
+  --soft: #f0e3d4;
+  --good: #3f7a4a;
+  --bad: #a83a2c;
+  --shadow: 0 1px 2px rgba(60,30,10,.06), 0 4px 14px rgba(60,30,10,.06);
+  --r: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17100c; --card: #221813; --ink: #f3e7da; --muted: #b59e8c; --line: #3a2a20;
+    --brand: #d79a6a; --brand-ink: #1a110c; --accent: #e3a372; --soft: #2e211a;
+    --good: #7cc48a; --bad: #ef8a7a; --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17100c; --card: #221813; --ink: #f3e7da; --muted: #b59e8c; --line: #3a2a20;
+  --brand: #d79a6a; --brand-ink: #1a110c; --accent: #e3a372; --soft: #2e211a;
+  --good: #7cc48a; --bad: #ef8a7a; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body {
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+
+.wrap { max-width: 560px; margin: 0 auto; padding: 0 16px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+/* Top bar */
+.top { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top); }
+#topbar { display: flex; align-items: center; gap: 10px; min-height: 56px; }
+.top h1 { font-size: 18px; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icon-btn { border: 0; background: transparent; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--ink); flex: none; }
+.icon-btn:active { background: var(--soft); }
+.icon-btn svg { width: 22px; height: 22px; }
+.live-score { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px; color: var(--brand); }
+.live-score small { font-weight: 500; color: var(--muted); font-size: 12px; display: block; text-align: right; line-height: 1; }
+
+/* Progress */
+.progress { display: flex; gap: 4px; padding: 0 0 10px; }
+.progress span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.progress span.done { background: var(--brand); }
+.progress span.now { background: var(--accent); }
+
+main { padding: 16px 0 140px; }
+.step-kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 2px; }
+h2 { font-size: 24px; line-height: 1.2; margin: 0 0 8px; }
+h3 { font-size: 17px; margin: 0; }
+p { margin: 0 0 12px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; margin: 0 0 14px; box-shadow: var(--shadow); }
+
+/* Guidance */
+details.guide { background: var(--soft); border-radius: 12px; margin: 10px 0 0; font-size: 14px; }
+details.guide summary { list-style: none; padding: 10px 12px; font-weight: 600; color: var(--brand); display: flex; align-items: center; gap: 8px; }
+details.guide summary::-webkit-details-marker { display: none; }
+details.guide summary::before { content: "?"; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-size: 12px; font-weight: 700; flex: none; }
+details.guide[open] summary { padding-bottom: 4px; }
+details.guide .body { padding: 0 12px 12px; }
+details.guide ul { margin: 6px 0 0; padding-left: 18px; }
+details.guide li { margin: 2px 0; }
+.lead { font-size: 15px; color: var(--muted); }
+
+/* Fields */
+label.field { display: block; margin: 0 0 14px; }
+label.field > span { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+label.field > em { display: block; font-style: normal; font-size: 13px; color: var(--muted); margin-top: 4px; }
+input[type=text], input[type=date], input[type=search], textarea, select {
+  width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); font-size: 16px;
+}
+textarea { min-height: 76px; resize: vertical; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Score widget */
+.score-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.score-head h3 { flex: 1; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); font-size: 22px; line-height: 1; display: grid; place-items: center; }
+.stepper button:active { background: var(--soft); }
+.score-val { min-width: 62px; text-align: center; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--brand); }
+.score-val.unset { color: var(--muted); font-weight: 500; font-size: 18px; }
+.score-word { font-size: 13px; color: var(--muted); text-align: right; min-height: 20px; }
+input[type=range] { width: 100%; height: 36px; accent-color: var(--brand); margin: 2px 0; touch-action: pan-y; }
+.unset-range input[type=range] { opacity: .45; }
+.ticks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.ticks button { border: 0; background: var(--soft); border-radius: 8px; padding: 6px 2px; font-size: 12px; line-height: 1.2; color: var(--muted); }
+.ticks button b { display: block; font-size: 14px; color: var(--ink); }
+.ticks button.on { background: var(--brand); color: var(--brand-ink); }
+.ticks button.on b { color: var(--brand-ink); }
+
+/* Segmented intensity */
+.seg-label { font-size: 14px; font-weight: 600; margin: 14px 0 4px; display: flex; justify-content: space-between; }
+.seg-label span { font-weight: 400; color: var(--muted); }
+.seg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.seg button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 8px 0; font-size: 13px; }
+.seg button.on { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); font-weight: 600; }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip-static { background: var(--soft); border-radius: 999px; padding: 3px 10px; font-size: 13px; }
+
+/* Cups */
+.cups { display: flex; gap: 8px; margin: 10px 0 4px; }
+.cup { flex: 1; aspect-ratio: 1; max-width: 64px; border-radius: 50%; border: 2px solid var(--brand); background: var(--brand); color: var(--brand-ink); font-weight: 700; display: grid; place-items: center; font-size: 13px; }
+.cup.off { background: transparent; color: var(--bad); border-color: var(--bad); border-style: dashed; }
+.cup-sub { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+
+/* Counter */
+.counter { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.counter .score-val { font-size: 22px; }
+
+/* Bottom nav */
+.bottom { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 10px 0 calc(10px + env(safe-area-inset-bottom)); z-index: 10; }
+.bottom .wrap { display: flex; gap: 10px; }
+.btn { color: var(--ink); border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 13px 16px; font-weight: 600; font-size: 16px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.btn.danger { color: var(--bad); }
+.btn.grow { flex: 1; }
+.btn:active { transform: translateY(1px); }
+.btn.block { width: 100%; }
+
+/* Timer */
+.timer { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; margin: 0 0 14px; }
+.timer .t { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 20px; min-width: 64px; }
+.timer .cue { flex: 1; font-size: 13px; color: var(--muted); line-height: 1.3; }
+.timer button { border: 0; background: var(--soft); border-radius: 8px; padding: 8px 10px; font-size: 14px; font-weight: 600; }
+
+/* List */
+.list-head { display: flex; gap: 10px; align-items: center; margin: 4px 0 12px; }
+.entry { display: flex; gap: 12px; align-items: center; text-decoration: none; color: inherit; }
+.entry .meta { flex: 1; min-width: 0; }
+.entry .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry .sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge { min-width: 64px; text-align: center; border-radius: 12px; padding: 8px 6px; background: var(--soft); }
+.badge b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; color: var(--brand); line-height: 1.1; }
+.badge span { font-size: 11px; color: var(--muted); }
+.empty { text-align: center; padding: 28px 8px; }
+.empty .big { font-size: 44px; }
+
+/* Summary */
+.total { text-align: center; padding: 18px 16px; }
+.total .num { font-size: 52px; font-weight: 800; line-height: 1; color: var(--brand); font-variant-numeric: tabular-nums; }
+.total .grade { margin-top: 6px; font-weight: 600; }
+.sheet { width: 100%; border-collapse: collapse; font-size: 15px; }
+.sheet td { padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sheet td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; padding-left: 8px; }
+.sheet tr.sum td { border-bottom: 0; font-weight: 700; }
+.sheet .bar { height: 4px; background: var(--line); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.sheet .bar i { display: block; height: 100%; background: var(--accent); }
+.sheet .note { font-size: 13px; color: var(--muted); }
+.warn { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 0 0 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); }
+.toast.show { opacity: 1; }
+
+.guide-page h3 { margin: 16px 0 6px; }
+.guide-page ol, .guide-page ul { padding-left: 20px; margin: 0 0 12px; }
+.guide-page li { margin: 4px 0; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 15px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap" id="topbar"></div>
+  <div class="wrap" id="progress-wrap"></div>
+</header>
+<main class="wrap" id="view"></main>
+<nav class="bottom" id="bottom" hidden><div class="wrap" id="bottom-inner"></div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+
+/* ---------- Storage ---------- */
+const KEY_SESSIONS = 'cupping.v1.sessions';
+const KEY_DRAFT = 'cupping.v1.draft';
+const KEY_TIMER = 'cupping.v1.timer';
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch (e) { return fallback; }
+}
+function save(key, value) {
+  try {
+    if (value === null || value === undefined) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) { toast('Could not save — storage is full or blocked'); return false; }
+}
+const getSessions = () => load(KEY_SESSIONS, []);
+const setSessions = (list) => save(KEY_SESSIONS, list);
+
+/* ---------- SCA form definition ---------- */
+const QUALITY = [
+  { min: 6, word: 'Good' }, { min: 7, word: 'Very good' }, { min: 8, word: 'Excellent' }, { min: 9, word: 'Outstanding' }
+];
+function qualityWord(v) {
+  if (v == null) return '';
+  let w = QUALITY[0].word;
+  for (const q of QUALITY) if (v >= q.min) w = q.word;
+  return w;
+}
+
+const CHIPS = {
+  aroma: ['Floral', 'Jasmine', 'Fruity', 'Berry', 'Citrus', 'Stone fruit', 'Tropical', 'Chocolate', 'Caramel', 'Honey', 'Brown sugar', 'Nutty', 'Vanilla', 'Spice', 'Herbal', 'Tea-like', 'Winey', 'Earthy', 'Roasty', 'Smoky'],
+  flavor: ['Floral', 'Berry', 'Citrus', 'Lemon', 'Orange', 'Apple', 'Grape', 'Stone fruit', 'Tropical', 'Dried fruit', 'Chocolate', 'Cocoa', 'Caramel', 'Honey', 'Brown sugar', 'Molasses', 'Nutty', 'Almond', 'Vanilla', 'Spice', 'Cinnamon', 'Black tea', 'Herbal', 'Winey', 'Fermented', 'Earthy', 'Roasty', 'Papery', 'Grassy'],
+  aftertaste: ['Long', 'Short', 'Clean', 'Sweet', 'Lingering fruit', 'Chocolatey', 'Dry', 'Bitter', 'Astringent', 'Harsh', 'Fades fast'],
+  acidity: ['Bright', 'Juicy', 'Crisp', 'Sparkling', 'Citric', 'Malic (apple)', 'Tartaric (grape)', 'Phosphoric', 'Soft', 'Mellow', 'Flat', 'Sour', 'Sharp'],
+  body: ['Tea-like', 'Light', 'Silky', 'Smooth', 'Round', 'Creamy', 'Juicy', 'Syrupy', 'Buttery', 'Heavy', 'Thin', 'Watery', 'Gritty', 'Dry'],
+  balance: ['Harmonious', 'Complex', 'Layered', 'Integrated', 'One-dimensional', 'Acid-forward', 'Sweet-forward', 'Bitter-forward', 'Unbalanced'],
+  overall: ['Would buy again', 'Great for filter', 'Great for espresso', 'Great with milk', 'Classic', 'Funky', 'Memorable', 'Ordinary'],
+  defects: ['Fermented', 'Phenolic', 'Moldy', 'Musty', 'Rubbery', 'Potato', 'Sour', 'Baggy', 'Stale', 'Baked', 'Scorched']
+};
+
+const LEVELS = ['Low', 'Low+', 'Med', 'High−', 'High'];
+
+const SCORES = [
+  { key: 'fragrance', label: 'Fragrance / Aroma' },
+  { key: 'flavor', label: 'Flavor' },
+  { key: 'aftertaste', label: 'Aftertaste' },
+  { key: 'acidity', label: 'Acidity' },
+  { key: 'body', label: 'Body' },
+  { key: 'balance', label: 'Balance' },
+  { key: 'overall', label: 'Overall' }
+];
+const CUP_ATTRS = [
+  { key: 'uniformity', label: 'Uniformity' },
+  { key: 'cleanCup', label: 'Clean Cup' },
+  { key: 'sweetness', label: 'Sweetness' }
+];
+
+const STEPS = [
+  { id: 'coffee', title: 'The coffee', render: stepCoffee },
+  { id: 'aroma', title: 'Fragrance & Aroma', render: stepAroma },
+  { id: 'flavor', title: 'Flavor & Aftertaste', render: stepFlavor },
+  { id: 'acidbody', title: 'Acidity & Body', render: stepAcidBody },
+  { id: 'balance', title: 'Balance & Overall', render: stepBalance },
+  { id: 'cups', title: 'Uniformity, Clean Cup & Sweetness', render: stepCups },
+  { id: 'defects', title: 'Defects', render: stepDefects },
+  { id: 'review', title: 'Review & save', render: stepReview }
+];
+
+function blankSession() {
+  const today = new Date().toISOString().slice(0, 10);
+  const n = 5;
+  const attr = (extra) => Object.assign({ score: null, notes: '', tags: [] }, extra || {});
+  return {
+    id: null, createdAt: null, updatedAt: null,
+    name: '', roaster: '', origin: '', process: '', roastLevel: '', roastDate: '', cupDate: today, place: '', cupper: '',
+    cups: n,
+    fragrance: attr({ dry: null, break: null }),
+    flavor: attr(), aftertaste: attr(),
+    acidity: attr({ intensity: null }),
+    body: attr({ level: null }),
+    balance: attr(), overall: attr(),
+    uniformity: Array(n).fill(true), cleanCup: Array(n).fill(true), sweetness: Array(n).fill(true),
+    defects: { taint: 0, fault: 0, notes: '', tags: [] },
+    notes: ''
+  };
+}
+
+/* ---------- Scoring ---------- */
+function computeScore(s) {
+  const n = s.cups || 5;
+  const perCup = 10 / n;
+  let attrs = 0, unscored = [];
+  for (const a of SCORES) {
+    const v = s[a.key].score;
+    if (v == null) unscored.push(a.label); else attrs += v;
+  }
+  const cupPts = {};
+  for (const c of CUP_ATTRS) cupPts[c.key] = s[c.key].slice(0, n).filter(Boolean).length * perCup;
+  const defects = 2 * (s.defects.taint || 0) + 4 * (s.defects.fault || 0);
+  const total = attrs + cupPts.uniformity + cupPts.cleanCup + cupPts.sweetness;
+  const final = total - defects;
+  return { attrs, cupPts, defects, total, final, unscored, complete: unscored.length === 0 };
+}
+function grade(v) {
+  if (v >= 90) return 'Outstanding specialty';
+  if (v >= 85) return 'Excellent specialty';
+  if (v >= 80) return 'Very good specialty';
+  return 'Below specialty grade';
+}
+const fmt = (v) => (Math.round(v * 100) / 100).toFixed(2);
+
+/* ---------- Utilities ---------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function getPath(obj, path) { return path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj); }
+function setPath(obj, path, val) {
+  const ks = path.split('.'); const last = ks.pop();
+  const tgt = ks.reduce((o, k) => o[k], obj); tgt[last] = val;
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d.length === 10 ? d + 'T12:00:00' : d);
+  return isNaN(dt) ? d : dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+const ICON = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z"/><path d="M20 17v4H6.5A2.5 2.5 0 014 18.5"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
+};
+
+/* ---------- Draft state ---------- */
+let draft = load(KEY_DRAFT, null);
+function saveDraft() { if (draft) save(KEY_DRAFT, draft); }
+function migrate(s) {
+  // Fill in any fields missing from older saves.
+  const b = blankSession();
+  for (const k of Object.keys(b)) {
+    if (s[k] === undefined) s[k] = b[k];
+    else if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) {
+      for (const kk of Object.keys(b[k])) if (s[k][kk] === undefined) s[k][kk] = b[k][kk];
+    }
+  }
+  return s;
+}
+
+/* ---------- Widgets ---------- */
+function guide(summary, html, open) {
+  return `<details class="guide"${open ? ' open' : ''}><summary>${esc(summary)}</summary><div class="body">${html}</div></details>`;
+}
+function scoreWidget(key, label) {
+  const v = draft[key].score;
+  const unset = v == null;
+  return `
+  <div class="score ${unset ? 'unset-range' : ''}" data-score="${key}">
+    <div class="score-head">
+      <h3>${esc(label)}</h3>
+      <div class="stepper">
+        <button type="button" data-act="nudge" data-key="${key}" data-d="-0.25" aria-label="Lower ${esc(label)} score">−</button>
+        <div class="score-val ${unset ? 'unset' : ''}" data-out="${key}">${unset ? '—' : fmt(v)}</div>
+        <button type="button" data-act="nudge" data-key="${key}" data-d="0.25" aria-label="Raise ${esc(label)} score">+</button>
+      </div>
+    </div>
+    <input type="range" min="6" max="10" step="0.25" value="${unset ? 7.5 : v}" data-range="${key}" aria-label="${esc(label)} score">
+    <div class="ticks">
+      ${QUALITY.map((q) => `<button type="button" data-act="setscore" data-key="${key}" data-v="${q.min}" class="${!unset && Math.floor(v) === q.min ? 'on' : ''}"><b>${q.min}</b>${q.word}</button>`).join('')}
+    </div>
+  </div>`;
+}
+function segWidget(path, label, ends) {
+  const v = getPath(draft, path);
+  return `
+  <div class="seg-label">${esc(label)} <span>${esc(ends[0])} → ${esc(ends[1])}</span></div>
+  <div class="seg" role="group" aria-label="${esc(label)}">
+    ${LEVELS.map((l, i) => `<button type="button" data-act="seg" data-path="${path}" data-v="${i + 1}" class="${v === i + 1 ? 'on' : ''}">${l}</button>`).join('')}
+  </div>`;
+}
+function chipsWidget(path, list) {
+  const tags = getPath(draft, path) || [];
+  const all = list.concat(tags.filter((t) => !list.includes(t)));
+  return `<div class="chips">${all.map((t) => `<button type="button" class="chip ${tags.includes(t) ? 'on' : ''}" data-act="chip" data-path="${path}" data-v="${esc(t)}">${esc(t)}</button>`).join('')}</div>`;
+}
+function notesWidget(path, placeholder) {
+  return `<label class="field" style="margin:12px 0 0"><span class="muted small" style="font-weight:500">Notes</span><textarea data-field="${path}" rows="2" placeholder="${esc(placeholder)}">${esc(getPath(draft, path))}</textarea></label>`;
+}
+function textField(path, label, hint, opts = {}) {
+  const v = getPath(draft, path) || '';
+  return `<label class="field"><span>${esc(label)}</span>
+    <input type="${opts.type || 'text'}" data-field="${path}" value="${esc(v)}" ${opts.placeholder ? `placeholder="${esc(opts.placeholder)}"` : ''} ${opts.list ? `list="${opts.list}"` : ''} autocomplete="off">
+    ${hint ? `<em>${hint}</em>` : ''}</label>`;
+}
+
+/* ---------- Timer ---------- */
+let timerInt = null;
+function timerState() { return load(KEY_TIMER, null); }
+function timerCue(sec) {
+  if (sec < 240) return 'Steeping. Smell the crust (wet aroma) now. Break at 4:00.';
+  if (sec < 300) return 'Break the crust now: 3 stirs, nose close to the cup.';
+  if (sec < 480) return 'Skim off the foam and grounds. Taste from about 8:00.';
+  if (sec < 900) return 'Hot to warm (~70°C): flavor, aftertaste, acidity, body, balance.';
+  if (sec < 1200) return 'Cooling (below ~40°C): sweetness, uniformity, clean cup.';
+  return 'Room temperature. Wrap up overall and defects.';
+}
+function timerHtml() {
+  const t = timerState();
+  return `<div class="timer" id="timer">
+    <div class="t" id="timer-t">${t ? '' : '0:00'}</div>
+    <div class="cue" id="timer-cue">${t ? '' : 'Start this when you pour the water.'}</div>
+    ${t ? '<button type="button" data-act="timer-reset">Reset</button>' : '<button type="button" data-act="timer-start">Start</button>'}
+  </div>`;
+}
+function tickTimer() {
+  const t = timerState(); const el = $('#timer-t');
+  if (!t || !el) return;
+  const sec = Math.max(0, Math.floor((Date.now() - t.start) / 1000));
+  el.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  $('#timer-cue').textContent = timerCue(sec);
+}
+function startTicking() {
+  clearInterval(timerInt);
+  if (timerState()) { tickTimer(); timerInt = setInterval(tickTimer, 1000); }
+}
+
+/* ---------- Steps ---------- */
+function stepCoffee() {
+  return `
+  <p class="lead">Start with what you're tasting. Only the name is required.</p>
+  <div class="card">
+    ${textField('name', 'Coffee / roast name', 'What it says on the bag, e.g. "Ethiopia Guji Hambela".', { placeholder: 'e.g. Kenya Nyeri AA' })}
+    ${textField('roaster', 'Roaster', '', { placeholder: 'Who roasted it', list: 'dl-roasters' })}
+    <div class="row2">
+      ${textField('origin', 'Origin', '', { placeholder: 'Country / region' })}
+      <label class="field"><span>Process</span>
+        <select data-field="process">
+          ${['', 'Washed', 'Natural', 'Honey', 'Anaerobic', 'Wet-hulled', 'Other'].map((o) => `<option ${draft.process === o ? 'selected' : ''} value="${o}">${o || '—'}</option>`).join('')}
+        </select></label>
+    </div>
+    <label class="field"><span>Roast level</span>
+      <select data-field="roastLevel">
+        ${['', 'Light', 'Medium-light', 'Medium', 'Medium-dark', 'Dark'].map((o) => `<option ${draft.roastLevel === o ? 'selected' : ''} value="${o}">${o || '—'}</option>`).join('')}
+      </select>
+      <em>SCA cupping uses a light-to-medium roast. Darker roasts taste more of the roast than the coffee.</em></label>
+    <div class="row2">
+      ${textField('roastDate', 'Roast date', '', { type: 'date' })}
+      ${textField('cupDate', 'Cupping date', '', { type: 'date' })}
+    </div>
+    ${textField('place', 'Where', '', { placeholder: 'Coffee shop, home…' })}
+    ${textField('cupper', 'Cupper', '', { placeholder: 'Your name' })}
+    <label class="field" style="margin:0"><span>Cups of this coffee</span>
+      <div class="counter">
+        <div class="stepper"><button type="button" data-act="cups" data-d="-1" aria-label="Fewer cups">−</button>
+        <div class="score-val">${draft.cups}</div>
+        <button type="button" data-act="cups" data-d="1" aria-label="More cups">+</button></div>
+      </div>
+      <em>The SCA form uses 5 cups per coffee. In a coffee shop 1–3 is fine; uniformity, clean cup and sweetness are scaled so they're still out of 10.</em></label>
+  </div>
+  ${guide('How to set up a cupping', `
+    <ul>
+      <li><b>Ratio:</b> 8.25 g coffee to 150 ml water (about 1 g per 18 ml). Use the same cup size for every cup.</li>
+      <li><b>Grind:</b> slightly coarser than drip/pour-over. Grind each cup separately, within 15 minutes of pouring.</li>
+      <li><b>Water:</b> clean, just off the boil (about 93°C / 200°F). Fill right to the brim.</li>
+      <li><b>Tools:</b> a round spoon, a cup of hot water to rinse it, and somewhere to spit.</li>
+      <li>Use the timer on the next screen: start it when you pour.</li>
+    </ul>`, !getSessions().length)}
+  ${datalists()}`;
+}
+function datalists() {
+  const roasters = [...new Set(getSessions().map((s) => s.roaster).filter(Boolean))];
+  return `<datalist id="dl-roasters">${roasters.map((r) => `<option value="${esc(r)}">`).join('')}</datalist>`;
+}
+
+function stepAroma() {
+  return `
+  ${timerHtml()}
+  <p class="lead">Smell the coffee three times: dry grounds, wet crust, then when you break the crust.</p>
+  <div class="card">
+    ${scoreWidget('fragrance', 'Fragrance / Aroma')}
+    ${segWidget('fragrance.dry', 'Dry (fragrance)', ['faint', 'intense'])}
+    ${segWidget('fragrance.break', 'Break (aroma)', ['faint', 'intense'])}
+    ${chipsWidget('fragrance.tags', CHIPS.aroma)}
+    ${notesWidget('fragrance.notes', 'What do you smell?')}
+    ${guide('How to judge fragrance & aroma', `
+      <p><b>Fragrance</b> is the smell of the dry grounds. <b>Aroma</b> is the smell once water is added.</p>
+      <ul>
+        <li><b>Dry:</b> within 15 min of grinding, bring the cup to your nose and sniff deeply. Tap the side to release more.</li>
+        <li><b>Crust:</b> after pouring, smell the crust of grounds on top without disturbing it.</li>
+        <li><b>Break (3–5 min):</b> push through the crust with your spoon, stirring 3 times, with your nose just above the cup. This is the strongest moment of aroma.</li>
+        <li>Mark how <i>strong</i> the smell is with Dry/Break. The score is about how <i>good</i> it is: is it pleasant, clear and appealing?</li>
+      </ul>`)}
+  </div>`;
+}
+
+function stepFlavor() {
+  return `
+  ${timerHtml()}
+  <p class="lead">From about 8–10 minutes in, when the coffee is around 70°C, slurp it hard from the spoon so it sprays over your whole tongue.</p>
+  <div class="card">
+    ${scoreWidget('flavor', 'Flavor')}
+    ${chipsWidget('flavor.tags', CHIPS.flavor)}
+    ${notesWidget('flavor.notes', 'Main flavors you taste')}
+    ${guide('How to judge flavor', `
+      <p>Flavor is the coffee's main character: all the tastes on the tongue plus the aromas that reach the nose from the mouth.</p>
+      <ul>
+        <li>Slurp loudly. Drawing in air spreads the coffee and carries aroma up to your nose.</li>
+        <li>Ask: how intense is it, how good, and how complex? Is it clear or muddy?</li>
+        <li>Can't name a flavor? Pick a broad family first (fruity, chocolatey, nutty), then narrow it down.</li>
+      </ul>`)}
+  </div>
+  <div class="card">
+    ${scoreWidget('aftertaste', 'Aftertaste')}
+    ${chipsWidget('aftertaste.tags', CHIPS.aftertaste)}
+    ${notesWidget('aftertaste.notes', 'What stays after you spit or swallow?')}
+    ${guide('How to judge aftertaste', `
+      <p>Aftertaste is the flavor that stays at the back of the palate after you spit or swallow.</p>
+      <ul>
+        <li>Count a few seconds after spitting and notice what's left.</li>
+        <li>High score: long, sweet, pleasant. Low score: short, bitter, dry or unpleasant.</li>
+      </ul>`)}
+  </div>`;
+}
+
+function stepAcidBody() {
+  return `
+  ${timerHtml()}
+  <p class="lead">Keep tasting as the cup cools. Mark how strong acidity and body are, then score how good they are.</p>
+  <div class="card">
+    ${scoreWidget('acidity', 'Acidity')}
+    ${segWidget('acidity.intensity', 'Intensity', ['soft', 'bright'])}
+    ${chipsWidget('acidity.tags', CHIPS.acidity)}
+    ${notesWidget('acidity.notes', 'What kind of acidity?')}
+    ${guide('How to judge acidity', `
+      <p>Acidity is the brightness of the coffee: a lively, juicy feel, often on the sides of the tongue. It's like the difference between a flat and a crisp apple.</p>
+      <ul>
+        <li><b>Intensity</b> is how much acidity there is. The <b>score</b> is how pleasant it is.</li>
+        <li>Lots of acidity can score high if it's sweet and juicy. A little can score high too if it fits the coffee.</li>
+        <li>Sharp or sour acidity scores low.</li>
+        <li>Compare: lemon (citric), green apple (malic), grape (tartaric), cola (phosphoric).</li>
+      </ul>`)}
+  </div>
+  <div class="card">
+    ${scoreWidget('body', 'Body')}
+    ${segWidget('body.level', 'Level', ['thin', 'heavy'])}
+    ${chipsWidget('body.tags', CHIPS.body)}
+    ${notesWidget('body.notes', 'How does it feel in your mouth?')}
+    ${guide('How to judge body', `
+      <p>Body is the feel of the coffee in your mouth: its weight and texture between your tongue and the roof of your mouth.</p>
+      <ul>
+        <li>Think skim milk (light), whole milk (medium), cream (heavy).</li>
+        <li>As with acidity, <b>level</b> is how much and the <b>score</b> is how good. A light, silky body can score high.</li>
+        <li>Watery, gritty or drying textures score low.</li>
+      </ul>`)}
+  </div>`;
+}
+
+function stepBalance() {
+  return `
+  ${timerHtml()}
+  <div class="card">
+    ${scoreWidget('balance', 'Balance')}
+    ${chipsWidget('balance.tags', CHIPS.balance)}
+    ${notesWidget('balance.notes', 'Does anything stick out?')}
+    ${guide('How to judge balance', `
+      <p>Balance is how well flavor, aftertaste, acidity and body work together.</p>
+      <ul>
+        <li>Does everything fit, or does one thing take over (too sour, too bitter) or go missing?</li>
+        <li>Harmonious and complete scores high. Lopsided or hollow scores low.</li>
+      </ul>`)}
+  </div>
+  <div class="card">
+    ${scoreWidget('overall', 'Overall')}
+    ${chipsWidget('overall.tags', CHIPS.overall)}
+    ${notesWidget('overall.notes', 'Your overall impression')}
+    ${guide('How to judge overall', `
+      <p>Overall is your personal score for the coffee as a whole. This is where your own taste counts.</p>
+      <ul>
+        <li>Did you enjoy it? Would you want another cup or buy the bag?</li>
+        <li>A coffee can be technically fine yet boring, or have small flaws yet be exciting. Reflect that here.</li>
+      </ul>`)}
+  </div>`;
+}
+
+function cupRow(key, label) {
+  const n = draft.cups; const per = 10 / n;
+  const arr = draft[key].slice(0, n);
+  const pts = arr.filter(Boolean).length * per;
+  return `<div class="cup-sub"><h3>${esc(label)}</h3><b data-cupout="${key}" style="color:var(--brand);font-size:18px">${fmt(pts)} / 10</b></div>
+    <div class="cups">${arr.map((on, i) => `<button type="button" class="cup ${on ? '' : 'off'}" data-act="cup" data-key="${key}" data-i="${i}" aria-pressed="${on}" aria-label="${esc(label)} cup ${i + 1}">${on ? fmt(per).replace(/\.00$/, '') : '✕'}</button>`).join('')}</div>`;
+}
+function stepCups() {
+  return `
+  ${timerHtml()}
+  <p class="lead">These are judged cup by cup, mostly as the coffee cools below ~40°C. Each cup starts with full points. <b>Tap a cup to take its points away.</b></p>
+  <div class="card">
+    ${cupRow('uniformity', 'Uniformity')}
+    ${guide('How to judge uniformity', `<p>Do all the cups of this coffee taste the same? Tap any cup that tastes noticeably different from the rest.</p><p>With only one cup, leave it on unless something is clearly off.</p>`)}
+  </div>
+  <div class="card">
+    ${cupRow('cleanCup', 'Clean Cup')}
+    ${guide('How to judge clean cup', `<p>Is the cup free of off-flavors from start to finish? Tap any cup with something muddy, dirty or out of place, even briefly.</p>`)}
+  </div>
+  <div class="card">
+    ${cupRow('sweetness', 'Sweetness')}
+    ${guide('How to judge sweetness', `<p>Is there a pleasant sweetness, and no harsh, sour or green tastes covering it up? Tap any cup that lacks sweetness.</p><p>It's subtle: think of the roundness of ripe fruit, not sugar.</p>`)}
+  </div>`;
+}
+
+function stepDefects() {
+  const n = draft.cups;
+  const counter = (path, label, pts) => `
+    <div class="cup-sub" style="margin-top:4px"><h3>${label}</h3><span>−${pts} pts per cup</span></div>
+    <div class="counter">
+      <div class="stepper"><button type="button" data-act="defect" data-path="${path}" data-d="-1" aria-label="Fewer ${label} cups">−</button>
+      <div class="score-val">${draft.defects[path]}</div>
+      <button type="button" data-act="defect" data-path="${path}" data-d="1" aria-label="More ${label} cups">+</button></div>
+      <span class="muted small">of ${n} cup${n > 1 ? 's' : ''}</span>
+    </div>`;
+  return `
+  <p class="lead">Most good coffees have no defects. If yours is clean, leave both at 0 and continue.</p>
+  <div class="card">
+    ${counter('taint', 'Taint', 2)}
+    <p class="small muted" style="margin:8px 0 16px">A noticeable off-flavor, mostly in the aroma, that isn't overpowering.</p>
+    ${counter('fault', 'Fault', 4)}
+    <p class="small muted" style="margin:8px 0 0">A strong off-flavor, usually in the taste, that makes the cup unpleasant.</p>
+    ${chipsWidget('defects.tags', CHIPS.defects)}
+    ${notesWidget('defects.notes', 'Describe any defect')}
+    ${guide('How defects work', `
+      <ul>
+        <li>Defects are subtracted from the total: <b>2 × cups</b> for a taint, <b>4 × cups</b> for a fault.</li>
+        <li>Count each affected cup once, as either a taint or a fault.</li>
+        <li>Typical causes: fermented or ferment-y (over-fermented cherries), phenolic/medicinal, musty or moldy (storage), rubbery, and "potato" (a raw, earthy note in some East African coffees).</li>
+        <li>If you already marked a cup down for Clean Cup, only add a defect here if it's strong and clear.</li>
+      </ul>`)}
+  </div>`;
+}
+
+function scoreSheet(s, withNotes) {
+  const r = computeScore(s);
+  const rows = SCORES.map((a) => {
+    const v = s[a.key].score; const extra = [];
+    if (a.key === 'fragrance') { if (s.fragrance.dry) extra.push('Dry: ' + LEVELS[s.fragrance.dry - 1]); if (s.fragrance.break) extra.push('Break: ' + LEVELS[s.fragrance.break - 1]); }
+    if (a.key === 'acidity' && s.acidity.intensity) extra.push('Intensity: ' + LEVELS[s.acidity.intensity - 1]);
+    if (a.key === 'body' && s.body.level) extra.push('Level: ' + LEVELS[s.body.level - 1]);
+    const tags = s[a.key].tags || [];
+    if (tags.length) extra.push(tags.join(', '));
+    if (withNotes && s[a.key].notes) extra.push(s[a.key].notes);
+    return `<tr><td>${a.label}${extra.length ? `<div class="note">${esc(extra.join(' · '))}</div>` : ''}
+      <div class="bar"><i style="width:${v == null ? 0 : ((v - 6) / 4) * 100}%"></i></div></td>
+      <td>${v == null ? '<span style="color:var(--bad)">—</span>' : fmt(v)}</td></tr>`;
+  }).join('');
+  const cups = CUP_ATTRS.map((c) => `<tr><td>${c.label}</td><td>${fmt(r.cupPts[c.key])}</td></tr>`).join('');
+  const d = s.defects;
+  const defectNote = [d.taint ? `${d.taint} taint` : '', d.fault ? `${d.fault} fault` : ''].concat(d.tags || []).filter(Boolean).join(' · ') + (withNotes && d.notes ? ' · ' + d.notes : '');
+  return `<table class="sheet">${rows}${cups}
+    <tr class="sum"><td>Total score</td><td>${fmt(r.total)}</td></tr>
+    <tr><td>Defects${defectNote ? `<div class="note">${esc(defectNote)}</div>` : ''}</td><td>${r.defects ? '−' + fmt(r.defects) : '0.00'}</td></tr>
+    <tr class="sum"><td>Final score</td><td>${fmt(r.final)}</td></tr></table>`;
+}
+
+function stepReview() {
+  const r = computeScore(draft);
+  return `
+  ${!draft.name.trim() ? `<div class="warn">Add a coffee name on the first page before saving. <a href="#/cup/0" style="color:inherit;font-weight:600">Go there</a></div>` : ''}
+  ${r.unscored.length ? `<div class="warn">Not scored yet: ${esc(r.unscored.join(', '))}. Unscored items count as 0, so the total will be low.</div>` : ''}
+  <div class="card total">
+    <div class="muted small">${esc(draft.name || 'Unnamed coffee')}${draft.roaster ? ' · ' + esc(draft.roaster) : ''}</div>
+    <div class="num">${fmt(r.final)}</div>
+    <div class="grade">${grade(r.final)}</div>
+  </div>
+  <div class="card">${scoreSheet(draft, false)}</div>
+  <div class="card">
+    <label class="field" style="margin:0"><span>Final notes</span>
+      <textarea data-field="notes" rows="3" placeholder="Summary, brew ideas, would you buy it again?">${esc(draft.notes)}</textarea></label>
+  </div>
+  ${guide('What the score means', `
+    <ul>
+      <li><b>90–100</b> Outstanding: rare, exceptional coffees.</li>
+      <li><b>85–89.99</b> Excellent.</li>
+      <li><b>80–84.99</b> Very good. 80+ counts as "specialty" coffee.</li>
+      <li><b>Below 80</b> Below specialty grade.</li>
+    </ul>
+    <p>Each of the 7 attributes is scored 6–10. Uniformity, clean cup and sweetness add up to 10 each. Defects are subtracted.</p>`)}
+  `;
+}
+
+/* ---------- Views ---------- */
+function setTop(html) { $('#topbar').innerHTML = html; }
+function setBottom(html) { const b = $('#bottom'); b.hidden = !html; $('#bottom-inner').innerHTML = html || ''; }
+function setProgress(html) { $('#progress-wrap').innerHTML = html || ''; }
+
+function viewHome() {
+  const all = getSessions();
+  const q = (homeQuery || '').toLowerCase();
+  const list = all.filter((s) => !q || [s.name, s.roaster, s.origin, s.place, s.process].join(' ').toLowerCase().includes(q));
+  const sort = homeSort;
+  list.sort((a, b) => sort === 'score' ? computeScore(b).final - computeScore(a).final : (b.cupDate || '').localeCompare(a.cupDate || '') || (b.updatedAt || 0) - (a.updatedAt || 0));
+
+  setTop(`<h1>☕ Cupping Notes</h1>
+    <a class="icon-btn" href="#/guide" aria-label="Cupping guide">${ICON.book}</a>
+    <a class="icon-btn" href="#/settings" aria-label="Backup and settings">${ICON.more}</a>`);
+  setProgress('');
+  const resume = draft ? `<div class="card" style="display:flex;gap:12px;align-items:center">
+      <div style="flex:1;min-width:0"><b>Unfinished cupping</b><div class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(draft.name || 'Unnamed coffee')}</div></div>
+      <a class="btn primary" href="#/cup/${draft._step || 0}">Resume</a>
+      <button class="btn" data-act="discard">Discard</button></div>` : '';
+  const install = installPrompt ? `<button class="btn block" data-act="install" style="margin-bottom:14px">Install app on this device</button>` : (isIOS() && !isStandalone() ? `<div class="card small">To install: tap <b>Share</b> <span aria-hidden="true">⎋</span> in Safari, then <b>Add to Home Screen</b>. It works offline after that.</div>` : '');
+
+  $('#view').innerHTML = `
+    ${resume}
+    ${install}
+    ${all.length ? `
+      <div class="list-head">
+        <input type="search" id="q" placeholder="Search ${all.length} coffee${all.length > 1 ? 's' : ''}" value="${esc(homeQuery)}" aria-label="Search">
+        <select id="sort" aria-label="Sort" style="width:auto">
+          <option value="date" ${sort === 'date' ? 'selected' : ''}>Newest</option>
+          <option value="score" ${sort === 'score' ? 'selected' : ''}>Top score</option>
+        </select>
+      </div>
+      ${list.map((s) => {
+        const r = computeScore(s);
+        const sub = [s.roaster, s.origin, fmtDate(s.cupDate)].filter(Boolean).join(' · ');
+        return `<a class="card entry" href="#/view/${s.id}">
+          <div class="meta"><div class="name">${esc(s.name || 'Unnamed coffee')}</div><div class="sub">${esc(sub)}</div></div>
+          <div class="badge"><b>${fmt(r.final)}</b><span>${grade(r.final).split(' ')[0]}</span></div></a>`;
+      }).join('') || '<p class="muted">No matches.</p>'}`
+    : `<div class="card empty">
+        <div class="big">☕</div>
+        <h2>Cup your first coffee</h2>
+        <p class="muted">Step through the SCA cupping form one part at a time, with tips on each page. Everything is saved on this device, and it works offline.</p>
+        <a href="#/guide" style="color:var(--brand);font-weight:600">New to cupping? Read the quick guide</a>
+      </div>`}`;
+  setBottom(draft ? '' : `<button class="btn primary grow" data-act="new">+ New cupping</button>`);
+  if (draft) setBottom(`<a class="btn primary grow" href="#/cup/${draft._step || 0}">Resume cupping</a>`);
+
+  const qi = $('#q'); if (qi) qi.addEventListener('input', (e) => { homeQuery = e.target.value; const pos = e.target.selectionStart; viewHome(); const n = $('#q'); n.focus(); n.setSelectionRange(pos, pos); });
+  const so = $('#sort'); if (so) so.addEventListener('change', (e) => { homeSort = e.target.value; viewHome(); });
+}
+let homeQuery = '', homeSort = 'date';
+
+function viewStep(i) {
+  if (!draft) { draft = blankSession(); }
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  draft._step = i; saveDraft();
+  const step = STEPS[i];
+  const r = computeScore(draft);
+  setTop(`<a class="icon-btn" href="#/" aria-label="Close (draft is kept)">${ICON.close}</a>
+    <h1>${esc(draft.name || (draft.id ? 'Edit cupping' : 'New cupping'))}</h1>
+    <div class="live-score" id="live"><small>score</small>${fmt(r.final)}</div>`);
+  setProgress(`<div class="progress">${STEPS.map((s, k) => `<span class="${k < i ? 'done' : k === i ? 'now' : ''}"></span>`).join('')}</div>`);
+  $('#view').innerHTML = `<p class="step-kicker">Step ${i + 1} of ${STEPS.length}</p><h2>${step.title}</h2>${step.render()}`;
+  const last = i === STEPS.length - 1;
+  setBottom(`${i > 0 ? `<a class="btn" href="#/cup/${i - 1}" aria-label="Previous step">${ICON.back.replace('<svg', '<svg width="20" height="20"')}Back</a>` : ''}
+    ${last ? `<button class="btn primary grow" data-act="save">Save cupping</button>` : `<a class="btn primary grow" href="#/cup/${i + 1}" data-act="next">Next: ${STEPS[i + 1].title.split(' & ')[0].split(',')[0]}</a>`}`);
+  window.scrollTo(0, 0);
+  startTicking();
+}
+
+function viewDetail(id) {
+  const s = getSessions().find((x) => x.id === id);
+  if (!s) { location.hash = '#/'; return; }
+  migrate(s);
+  const r = computeScore(s);
+  setTop(`<a class="icon-btn" href="#/" aria-label="Back">${ICON.back}</a><h1>${esc(s.name || 'Unnamed coffee')}</h1>`);
+  setProgress('');
+  const info = [['Roaster', s.roaster], ['Origin', s.origin], ['Process', s.process], ['Roast', s.roastLevel], ['Roasted', fmtDate(s.roastDate)], ['Cupped', fmtDate(s.cupDate)], ['Where', s.place], ['Cupper', s.cupper], ['Cups', s.cups]].filter((x) => x[1]);
+  $('#view').innerHTML = `
+    <div class="card total"><div class="num">${fmt(r.final)}</div><div class="grade">${grade(r.final)}</div></div>
+    ${info.length ? `<div class="card"><dl class="kv">${info.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div>` : ''}
+    <div class="card">${scoreSheet(s, true)}</div>
+    ${s.notes ? `<div class="card"><h3 style="margin-bottom:6px">Notes</h3><p style="white-space:pre-wrap;margin:0">${esc(s.notes)}</p></div>` : ''}
+    <div class="actions"><button class="btn danger" data-act="delete" data-id="${s.id}">Delete</button>
+    <button class="btn" data-act="duplicate" data-id="${s.id}">Cup again</button>
+    <button class="btn" data-act="share" data-id="${s.id}">Share</button></div>`;
+  setBottom(`<button class="btn primary grow" data-act="edit" data-id="${s.id}">Edit</button>`);
+}
+
+function viewGuide() {
+  setTop(`<a class="icon-btn" href="#/" aria-label="Back">${ICON.back}</a><h1>How to cup coffee</h1>`);
+  setProgress('');
+  $('#view').innerHTML = `<div class="guide-page">
+    <p class="lead">Cupping is a simple, repeatable way to taste coffee: steep the grounds right in the cup, then smell and slurp. This app follows the classic SCA (Specialty Coffee Association) cupping form.</p>
+    <div class="card">
+      <h3 style="margin-top:0">What you need</h3>
+      <ul><li>Coffee ground a bit coarser than drip: 8.25 g per 150 ml cup.</li>
+      <li>Water just off the boil, about 93°C.</li>
+      <li>A round soup spoon, a cup of hot water for rinsing, and a cup to spit in.</li>
+      <li>In a coffee shop, ask if they'll set up a cupping, or ask for the coffee as a French press or immersion brew: it's close enough to practice with.</li></ul>
+      <h3>The steps</h3>
+      <ol>
+        <li><b>0:00 Dry fragrance.</b> Smell the dry grounds right after grinding.</li>
+        <li><b>Pour.</b> Fill each cup to the brim and start the timer. Smell the crust that forms.</li>
+        <li><b>4:00 Break.</b> Stir the crust 3 times with your nose close. This is the moment of strongest aroma.</li>
+        <li><b>Skim.</b> Lift the foam and floating grounds off with two spoons.</li>
+        <li><b>8:00–10:00 Taste.</b> When it's about 70°C, slurp hard from the spoon. Score flavor, aftertaste, acidity, body and balance.</li>
+        <li><b>Keep tasting as it cools.</b> Scores often change as the coffee cools; adjust as you go.</li>
+        <li><b>Below ~40°C.</b> Judge sweetness, uniformity and clean cup. Stop at about 21°C, then give your overall score.</li>
+      </ol>
+      <h3>The scale</h3>
+      <p>Each attribute is scored from 6 to 10 in quarter points:</p>
+      <ul><li><b>6–6.75</b> Good</li><li><b>7–7.75</b> Very good</li><li><b>8–8.75</b> Excellent</li><li><b>9–10</b> Outstanding</li></ul>
+      <p>Most good specialty coffee lands between 7 and 8 for each attribute. If you're unsure, start at 7.5 and move up or down. Total scores of 80+ are "specialty".</p>
+      <h3>Tips</h3>
+      <ul><li>Don't overthink names for flavors. "Fruity" or "chocolatey" is a fine start.</li>
+      <li>Rinse your spoon between coffees.</li>
+      <li>Taste coffees side by side when you can. Comparing makes differences much easier to notice.</li>
+      <li>Avoid strong perfume, mint or spicy food just before.</li></ul>
+    </div></div>`;
+  setBottom(`<button class="btn primary grow" data-act="new">${draft ? 'Resume cupping' : 'Start cupping'}</button>`);
+}
+
+function viewSettings() {
+  const n = getSessions().length;
+  setTop(`<a class="icon-btn" href="#/" aria-label="Back">${ICON.back}</a><h1>Backup & data</h1>`);
+  setProgress('');
+  $('#view').innerHTML = `
+    <div class="card">
+      <h3>Your data stays on this device</h3>
+      <p class="small muted" style="margin-top:6px">${n} cupping${n === 1 ? '' : 's'} saved in this browser's local storage. Nothing is sent anywhere. Clearing your browser data, or uninstalling the app, deletes them, so export a backup now and then.</p>
+      <div class="actions">
+        <button class="btn" data-act="export-json">Export backup (JSON)</button>
+        <button class="btn" data-act="export-csv">Export spreadsheet (CSV)</button>
+        <button class="btn" data-act="import">Import backup</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Theme</h3>
+      <div class="seg" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+        ${['auto', 'light', 'dark'].map((t) => `<button type="button" data-act="theme" data-v="${t}" class="${(localTheme() || 'auto') === t ? 'on' : ''}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Delete everything</h3>
+      <p class="small muted" style="margin-top:6px">Removes all cuppings from this device.</p>
+      <button class="btn danger" data-act="wipe">Delete all cuppings</button>
+    </div>`;
+  setBottom('');
+}
+
+/* ---------- Router ---------- */
+function route() {
+  const h = location.hash.replace(/^#\/?/, '');
+  const [a, b] = h.split('/');
+  if (a === 'cup') viewStep(parseInt(b, 10) || 0);
+  else if (a === 'view') viewDetail(b);
+  else if (a === 'guide') viewGuide();
+  else if (a === 'settings') viewSettings();
+  else viewHome();
+  if (a !== 'cup') clearInterval(timerInt);
+}
+window.addEventListener('hashchange', route);
+
+/* ---------- Live updates ---------- */
+function refreshLive() {
+  const live = $('#live'); if (live) live.innerHTML = `<small>score</small>${fmt(computeScore(draft).final)}`;
+}
+function setScore(key, v) {
+  v = Math.max(6, Math.min(10, Math.round(v * 4) / 4));
+  draft[key].score = v; saveDraft();
+  const box = document.querySelector(`[data-score="${key}"]`);
+  if (box) {
+    box.classList.remove('unset-range');
+    const out = box.querySelector(`[data-out="${key}"]`); out.textContent = fmt(v); out.classList.remove('unset');
+    const rg = box.querySelector('input[type=range]'); if (+rg.value !== v) rg.value = v;
+    box.querySelectorAll('.ticks button').forEach((b) => b.classList.toggle('on', Math.floor(v) === +b.dataset.v || (v === 10 && +b.dataset.v === 9)));
+    out.title = qualityWord(v);
+  }
+  refreshLive();
+}
+
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.range) setScore(t.dataset.range, parseFloat(t.value));
+  else if (t.dataset.field && draft) {
+    setPath(draft, t.dataset.field, t.value); saveDraft();
+    if (t.dataset.field === 'name') { const h = $('#topbar h1'); if (h) h.textContent = t.value || 'New cupping'; }
+  }
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.tagName === 'SELECT' && t.dataset.field && draft) { setPath(draft, t.dataset.field, t.value); saveDraft(); }
+});
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const handlers = {
+    nudge() {
+      const k = el.dataset.key; const cur = draft[k].score;
+      setScore(k, cur == null ? 7.5 : cur + parseFloat(el.dataset.d));
+    },
+    setscore() { setScore(el.dataset.key, parseFloat(el.dataset.v)); },
+    seg() {
+      const v = +el.dataset.v; const cur = getPath(draft, el.dataset.path);
+      setPath(draft, el.dataset.path, cur === v ? null : v); saveDraft();
+      el.parentElement.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el && cur !== v));
+    },
+    chip() {
+      const tags = getPath(draft, el.dataset.path); const v = el.dataset.v;
+      const i = tags.indexOf(v); if (i >= 0) tags.splice(i, 1); else tags.push(v);
+      saveDraft(); el.classList.toggle('on', i < 0);
+    },
+    cup() {
+      const k = el.dataset.key; const i = +el.dataset.i;
+      draft[k][i] = !draft[k][i]; saveDraft(); rerenderStep();
+    },
+    cups() {
+      const n = Math.max(1, Math.min(5, draft.cups + +el.dataset.d));
+      if (n === draft.cups) return;
+      draft.cups = n;
+      for (const c of CUP_ATTRS) { while (draft[c.key].length < 5) draft[c.key].push(true); }
+      draft.defects.taint = Math.min(draft.defects.taint, n); draft.defects.fault = Math.min(draft.defects.fault, n);
+      saveDraft(); rerenderStep();
+    },
+    defect() {
+      const p = el.dataset.path; const other = p === 'taint' ? 'fault' : 'taint';
+      const max = draft.cups - draft.defects[other];
+      draft.defects[p] = Math.max(0, Math.min(max, draft.defects[p] + +el.dataset.d));
+      saveDraft(); rerenderStep();
+    },
+    'timer-start'() { save(KEY_TIMER, { start: Date.now() }); rerenderStep(); },
+    'timer-reset'() { save(KEY_TIMER, null); rerenderStep(); },
+    next(ev) {
+      if (+location.hash.split('/')[2] === 0 && !draft.name.trim()) {
+        ev.preventDefault(); toast('Give the coffee a name first');
+        const f = document.querySelector('[data-field="name"]'); if (f) f.focus();
+      }
+    },
+    new() {
+      if (!draft) draft = blankSession();
+      saveDraft(); location.hash = `#/cup/${draft._step || 0}`;
+    },
+    discard() {
+      if (!confirm('Discard this unfinished cupping?')) return;
+      draft = null; save(KEY_DRAFT, null); save(KEY_TIMER, null); viewHome();
+    },
+    save() {
+      if (!draft.name.trim()) { toast('Add a coffee name first'); location.hash = '#/cup/0'; return; }
+      const r = computeScore(draft);
+      if (!r.complete && !confirm(`${r.unscored.length} attribute${r.unscored.length > 1 ? 's are' : ' is'} not scored yet. Save anyway?`)) return;
+      const list = getSessions(); const now = Date.now();
+      const rec = JSON.parse(JSON.stringify(draft)); delete rec._step;
+      if (!rec.id) { rec.id = uid(); rec.createdAt = now; }
+      rec.updatedAt = now;
+      const i = list.findIndex((x) => x.id === rec.id);
+      if (i >= 0) list[i] = rec; else list.push(rec);
+      if (!setSessions(list)) return;
+      draft = null; save(KEY_DRAFT, null); save(KEY_TIMER, null);
+      toast('Saved ✓'); location.hash = '#/view/' + rec.id;
+    },
+    edit() {
+      if (draft && draft.id !== el.dataset.id && !confirm('You have an unfinished cupping. Replace it with this one?')) return;
+      const s = getSessions().find((x) => x.id === el.dataset.id);
+      draft = migrate(JSON.parse(JSON.stringify(s))); draft._step = 1; saveDraft();
+      location.hash = '#/cup/1';
+    },
+    duplicate() {
+      if (draft && !confirm('You have an unfinished cupping. Replace it?')) return;
+      const s = getSessions().find((x) => x.id === el.dataset.id);
+      const b = blankSession();
+      ['name', 'roaster', 'origin', 'process', 'roastLevel', 'roastDate', 'place', 'cupper', 'cups'].forEach((k) => { b[k] = s[k]; });
+      b.uniformity = Array(5).fill(true); b.cleanCup = Array(5).fill(true); b.sweetness = Array(5).fill(true);
+      draft = b; draft._step = 0; saveDraft(); location.hash = '#/cup/0';
+    },
+    delete() {
+      if (!confirm('Delete this cupping? This cannot be undone.')) return;
+      setSessions(getSessions().filter((x) => x.id !== el.dataset.id));
+      toast('Deleted'); location.hash = '#/';
+    },
+    share() {
+      const s = getSessions().find((x) => x.id === el.dataset.id);
+      const text = shareText(s);
+      if (navigator.share) navigator.share({ title: s.name, text }).catch(() => {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard'), () => toast('Could not copy'));
+    },
+    install() {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      installPrompt.userChoice.finally(() => { installPrompt = null; route(); });
+    },
+    'export-json'() {
+      download(`cupping-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'cupping-notes', version: 1, exportedAt: new Date().toISOString(), sessions: getSessions() }, null, 2), 'application/json');
+    },
+    'export-csv'() { download(`cuppings-${new Date().toISOString().slice(0, 10)}.csv`, toCSV(getSessions()), 'text/csv'); },
+    import() { $('#import-file').click(); },
+    theme() { setTheme(el.dataset.v); viewSettings(); },
+    wipe() {
+      if (!confirm('Delete ALL cuppings from this device? Export a backup first if you want to keep them.')) return;
+      setSessions([]); toast('All cuppings deleted'); viewSettings();
+    }
+  };
+  if (handlers[act]) handlers[act](e);
+});
+function rerenderStep() {
+  const y = window.scrollY; viewStep(draft._step || 0); window.scrollTo(0, y);
+}
+
+/* ---------- Export / import ---------- */
+function download(name, content, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function toCSV(list) {
+  const cols = ['name', 'roaster', 'origin', 'process', 'roastLevel', 'roastDate', 'cupDate', 'place', 'cupper', 'cups'];
+  const head = cols.concat(SCORES.map((a) => a.key), CUP_ATTRS.map((c) => c.key), ['defects', 'final', 'flavorNotes', 'notes']);
+  const q = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+  const rows = list.map((s) => {
+    migrate(s); const r = computeScore(s);
+    return cols.map((c) => s[c]).concat(SCORES.map((a) => s[a.key].score), CUP_ATTRS.map((c) => fmt(r.cupPts[c.key])), [r.defects, fmt(r.final), (s.flavor.tags || []).join('; '), s.notes]).map(q).join(',');
+  });
+  return [head.join(',')].concat(rows).join('\n');
+}
+function shareText(s) {
+  const r = computeScore(s);
+  const lines = [`☕ ${s.name}${s.roaster ? ' — ' + s.roaster : ''}`, `SCA score: ${fmt(r.final)} (${grade(r.final)})`];
+  SCORES.forEach((a) => lines.push(`${a.label}: ${s[a.key].score == null ? '—' : fmt(s[a.key].score)}${(s[a.key].tags || []).length ? ' · ' + s[a.key].tags.join(', ') : ''}`));
+  if (s.notes) lines.push('', s.notes);
+  return lines.join('\n');
+}
+$('#import-file').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    const incoming = Array.isArray(data) ? data : data.sessions;
+    if (!Array.isArray(incoming)) throw new Error('bad');
+    const list = getSessions(); let added = 0, updated = 0;
+    for (const raw of incoming) {
+      if (!raw || typeof raw !== 'object') continue;
+      const s = migrate(raw); if (!s.id) s.id = uid();
+      const i = list.findIndex((x) => x.id === s.id);
+      if (i >= 0) { if ((s.updatedAt || 0) >= (list[i].updatedAt || 0)) { list[i] = s; updated++; } }
+      else { list.push(s); added++; }
+    }
+    setSessions(list); toast(`Imported: ${added} new, ${updated} updated`); route();
+  } catch (err) { toast("That file doesn't look like a cupping backup"); }
+});
+
+/* ---------- Theme ---------- */
+function localTheme() { try { return localStorage.getItem('cupping.theme'); } catch (e) { return null; } }
+function setTheme(t) {
+  try { if (t === 'auto') localStorage.removeItem('cupping.theme'); else localStorage.setItem('cupping.theme', t); } catch (e) {}
+  applyTheme();
+}
+function applyTheme() {
+  const t = localTheme();
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+}
+applyTheme();
+
+/* ---------- Install / offline ---------- */
+let installPrompt = null;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; if (!location.hash || location.hash === '#/') viewHome(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; toast('Installed ✓'); });
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+if (draft) migrate(draft);
+route();
+</script>
+</body>
+</html>
